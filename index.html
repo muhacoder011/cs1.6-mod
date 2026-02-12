@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Counter-Strike 1.6 ELITE</title>
+
+<style>
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:black;font-family:Tahoma;color:#ffb300;}
+
+#bg-video{position:fixed;top:50%;left:50%;width:177.77vh;height:100vh;transform:translate(-50%,-50%);pointer-events:none;z-index:-3;}
+.overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:-2;}
+
+.smoke{position:fixed;width:200%;height:200%;background:url("https://i.imgur.com/8fK4h6G.png") repeat;animation:smokeMove 80s linear infinite;opacity:0.15;z-index:-1;}
+@keyframes smokeMove{0%{transform:translate(0,0)}100%{transform:translate(-1200px,-600px)}}
+
+.logo{position:absolute;top:30px;left:50%;transform:translateX(-50%);font-size:55px;letter-spacing:5px;animation:pulse 3s infinite;}
+@keyframes pulse{0%{opacity:.7;text-shadow:0 0 10px orange}50%{opacity:1;text-shadow:0 0 40px orange}100%{opacity:.7;text-shadow:0 0 10px orange}}
+
+.menu{position:absolute;top:50%;left:120px;transform:translateY(-50%);} 
+.menuItem{font-size:24px;margin:18px 0;cursor:pointer;transition:.3s;} 
+.menuItem:hover{color:white;text-shadow:0 0 20px orange;transform:translateX(10px);} 
+
+.rankBox{position:absolute;top:120px;right:120px;font-size:20px;}
+
+.weapon{position:absolute;right:120px;bottom:80px;width:320px;animation:float 4s ease-in-out infinite;} 
+@keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-25px)}100%{transform:translateY(0)}}
+
+.servers{display:none;position:absolute;top:150px;right:80px;background:rgba(0,0,0,0.85);padding:20px;border:2px solid orange;width:320px;}
+.serverItem{padding:6px 0;border-bottom:1px solid #333;}
+
+.caseBox{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:600px;overflow:hidden;}
+.roulette{display:flex;transition:transform 4s cubic-bezier(.1,.7,.1,1);} 
+.skin{min-width:150px;padding:20px;border:1px solid orange;margin:5px;background:black;}
+
+.loading{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;} 
+.barBox{width:420px;height:25px;border:2px solid orange;margin-top:20px;} 
+.bar{width:0%;height:100%;background:orange;} 
+
+.login{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;} 
+input{padding:10px;margin:5px;width:220px;background:black;border:2px solid orange;color:orange;} 
+button{padding:10px 20px;background:black;border:2px solid orange;color:orange;cursor:pointer;} 
+button:hover{background:orange;color:black;}
+</style>
+</head>
+<body>
+
+<iframe id="bg-video" src="https://www.youtube.com/embed/WY9Zmnr553w?autoplay=1&mute=1&controls=0&loop=1&playlist=WY9Zmnr553w" frameborder="0" allow="autoplay; fullscreen"></iframe>
+<div class="overlay"></div>
+<div class="smoke"></div>
+
+<audio autoplay loop>
+<source src="https://vgmsite.com/soundtracks/counter-strike-1.6/track1.mp3">
+</audio>
+
+<div class="logo">COUNTER-STRIKE 1.6</div>
+
+<div class="login" id="login">
+<h2>ENTER NICK</h2>
+<input id="nick" placeholder="Nickname"><br>
+<button onclick="enterGame()">ENTER</button>
+</div>
+
+<div class="menu" id="menu" style="display:none;">
+<div class="menuItem" onclick="play()">PLAY</div>
+<div class="menuItem" onclick="toggleServers()">SERVERS</div>
+<div class="menuItem" onclick="openCase()">OPEN CASE</div>
+<div class="menuItem" onclick="location.reload()">EXIT</div>
+</div>
+
+<div class="rankBox" id="rankBox"></div>
+
+<img class="weapon" src="https://i.imgur.com/Z6X6X9x.png">
+
+<div class="servers" id="servers">
+<h3>SERVER LIST</h3>
+<div class="serverItem">Dust2 Public - 32/32</div>
+<div class="serverItem">Inferno Arena - 18/32</div>
+<div class="serverItem">AWP Only - 12/20</div>
+<div class="serverItem">Zombie Mod - 20/24</div>
+</div>
+
+<div class="caseBox" id="caseBox">
+<h3>CASE OPENING</h3>
+<div class="roulette" id="roulette"></div>
+</div>
+
+<div class="loading" id="loading">
+<h2 id="loadingText">Loading...</h2>
+<div class="barBox"><div class="bar" id="bar"></div></div>
+<p id="percent">0%</p>
+</div>
+
+<script>
+let ranks=["Silver I","Silver II","Silver III","Gold Nova","Master Guardian","Legendary Eagle","Global Elite"];
+let skins=["AK-47 Redline","AWP Dragon Lore","M4A1 Hyper Beast","Glock Fade","USP Kill Confirmed","Deagle Blaze"];
+
+function enterGame(){
+let n=document.getElementById("nick").value;
+if(!n)return alert("Enter nickname");
+localStorage.setItem("playerNick",n);
+document.getElementById("login").style.display="none";
+document.getElementById("menu").style.display="block";
+let rank=ranks[Math.floor(Math.random()*ranks.length)];
+document.getElementById("rankBox").innerText="Player: "+n+" | Rank: "+rank;
+}
+
+function play(){
+document.getElementById("menu").style.display="none";
+document.getElementById("loading").style.display="block";
+document.getElementById("loadingText").innerText="Loading player: "+localStorage.getItem("playerNick");
+let p=0;
+let load=setInterval(()=>{
+p++;bar.style.width=p+"%";percent.innerText=p+"%";
+if(p>=100){clearInterval(load);document.documentElement.requestFullscreen();
+setTimeout(()=>{
+let nick=localStorage.getItem("playerNick");
+window.location.href="https://poki.com/uz/g/blockpost?player="+encodeURIComponent(nick);
+},1000);}
+},30);
+}
+
+function toggleServers(){
+let s=document.getElementById("servers");
+s.style.display=s.style.display=="block"?"none":"block";
+}
+
+function openCase(){
+document.getElementById("caseBox").style.display="block";
+let roulette=document.getElementById("roulette");
+roulette.innerHTML="";
+for(let i=0;i<20;i++){
+let skin=document.createElement("div");
+skin.className="skin";
+skin.innerText=skins[Math.floor(Math.random()*skins.length)];
+roulette.appendChild(skin);
+}
+setTimeout(()=>{
+roulette.style.transform="translateX(-1500px)";
+},100);
+}
+</script>
+
+</body>
+</html>
