@@ -3,142 +3,336 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Counter-Strike 1.6 ELITE</title>
+<title>CS 1.6 Ultimate Web Client</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <style>
-html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:black;font-family:Tahoma;color:#ffb300;}
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:'Orbitron',sans-serif;
+    background:black;
+    color:white;
+    overflow:hidden;
+}
 
-#bg-video{position:fixed;top:50%;left:50%;width:177.77vh;height:100vh;transform:translate(-50%,-50%);pointer-events:none;z-index:-3;}
-.overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:-2;}
+#bgVideo{
+    position:fixed;
+    min-width:100%;
+    min-height:100%;
+    z-index:-2;
+    filter:brightness(30%);
+}
 
-.smoke{position:fixed;width:200%;height:200%;background:url("https://i.imgur.com/8fK4h6G.png") repeat;animation:smokeMove 80s linear infinite;opacity:0.15;z-index:-1;}
-@keyframes smokeMove{0%{transform:translate(0,0)}100%{transform:translate(-1200px,-600px)}}
+#menu{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+    background:rgba(0,0,0,0.8);
+    padding:40px;
+    border-radius:20px;
+    box-shadow:0 0 40px #ff6600;
+    width:420px;
+}
 
-.logo{position:absolute;top:30px;left:50%;transform:translateX(-50%);font-size:55px;letter-spacing:5px;animation:pulse 3s infinite;}
-@keyframes pulse{0%{opacity:.7;text-shadow:0 0 10px orange}50%{opacity:1;text-shadow:0 0 40px orange}100%{opacity:.7;text-shadow:0 0 10px orange}}
+h1{
+    margin-bottom:20px;
+    color:#ffcc00;
+    text-shadow:0 0 15px orange;
+}
 
-.menu{position:absolute;top:50%;left:120px;transform:translateY(-50%);} 
-.menuItem{font-size:24px;margin:18px 0;cursor:pointer;transition:.3s;} 
-.menuItem:hover{color:white;text-shadow:0 0 20px orange;transform:translateX(10px);} 
+button{
+    width:100%;
+    padding:14px;
+    margin:8px 0;
+    font-size:16px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    background:linear-gradient(45deg,#ff9900,#ff3300);
+    color:white;
+    transition:0.3s;
+}
 
-.rankBox{position:absolute;top:120px;right:120px;font-size:20px;}
+button:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 15px #ff6600;
+}
 
-.weapon{position:absolute;right:120px;bottom:80px;width:320px;animation:float 4s ease-in-out infinite;} 
-@keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-25px)}100%{transform:translateY(0)}}
+.panel{
+    margin-top:15px;
+    padding:10px;
+    background:rgba(255,255,255,0.05);
+    border-radius:10px;
+    max-height:150px;
+    overflow:auto;
+    font-size:14px;
+}
 
-.servers{display:none;position:absolute;top:150px;right:80px;background:rgba(0,0,0,0.85);padding:20px;border:2px solid orange;width:320px;}
-.serverItem{padding:6px 0;border-bottom:1px solid #333;}
+#gameFrame{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    border:none;
+    display:none;
+}
 
-.caseBox{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:600px;overflow:hidden;}
-.roulette{display:flex;transition:transform 4s cubic-bezier(.1,.7,.1,1);} 
-.skin{min-width:150px;padding:20px;border:1px solid orange;margin:5px;background:black;}
+#weaponPreview{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    display:none;
+}
 
-.loading{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;} 
-.barBox{width:420px;height:25px;border:2px solid orange;margin-top:20px;} 
-.bar{width:0%;height:100%;background:orange;} 
-
-.login{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;} 
-input{padding:10px;margin:5px;width:220px;background:black;border:2px solid orange;color:orange;} 
-button{padding:10px 20px;background:black;border:2px solid orange;color:orange;cursor:pointer;} 
-button:hover{background:orange;color:black;}
 </style>
 </head>
 <body>
 
-<iframe id="bg-video" src="https://www.youtube.com/embed/WY9Zmnr553w?autoplay=1&mute=1&controls=0&loop=1&playlist=WY9Zmnr553w" frameborder="0" allow="autoplay; fullscreen"></iframe>
-<div class="overlay"></div>
-<div class="smoke"></div>
+<video autoplay muted loop id="bgVideo">
+<source src="https://cdn.coverr.co/videos/coverr-gamer-room-1602/1080p.mp4" type="video/mp4">
+</video>
 
-<audio autoplay loop>
-<source src="https://vgmsite.com/soundtracks/counter-strike-1.6/track1.mp3">
-</audio>
+<audio id="hoverSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-changing-tab-206.wav"></audio>
+<audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.wav"></audio>
 
-<div class="logo">COUNTER-STRIKE 1.6</div>
+<div id="menu">
+<h1>CS 1.6 Web Client</h1>
 
-<div class="login" id="login">
-<h2>ENTER NICK</h2>
-<input id="nick" placeholder="Nickname"><br>
-<button onclick="enterGame()">ENTER</button>
+<button onclick="playClick();showServers()" onmouseover="playHover()">▶ PLAY</button>
+<button onclick="playClick();openCase()" onmouseover="playHover()">💎 Open Case</button>
+<button onclick="playClick();showMarket()" onmouseover="playHover()">💰 Market</button>
+<button onclick="playClick();showRank()" onmouseover="playHover()">🏆 Rank</button>
+<button onclick="playClick();dailyReward()" onmouseover="playHover()">🎁 Daily Reward</button>
+<button onclick="playClick();openWeaponPreview()" onmouseover="playHover()">🔫 Weapon Preview 3D</button>
+
+<div id="output" class="panel"></div>
+
 </div>
 
-<div class="menu" id="menu" style="display:none;">
-<div class="menuItem" onclick="play()">PLAY</div>
-<div class="menuItem" onclick="toggleServers()">SERVERS</div>
-<div class="menuItem" onclick="openCase()">OPEN CASE</div>
-<div class="menuItem" onclick="location.reload()">EXIT</div>
-</div>
-
-<div class="rankBox" id="rankBox"></div>
-
-<img class="weapon" src="https://i.imgur.com/Z6X6X9x.png">
-
-<div class="servers" id="servers">
-<h3>SERVER LIST</h3>
-<div class="serverItem">Dust2 Public - 32/32</div>
-<div class="serverItem">Inferno Arena - 18/32</div>
-<div class="serverItem">AWP Only - 12/20</div>
-<div class="serverItem">Zombie Mod - 20/24</div>
-</div>
-
-<div class="caseBox" id="caseBox">
-<h3>CASE OPENING</h3>
-<div class="roulette" id="roulette"></div>
-</div>
-
-<div class="loading" id="loading">
-<h2 id="loadingText">Loading...</h2>
-<div class="barBox"><div class="bar" id="bar"></div></div>
-<p id="percent">0%</p>
-</div>
+<iframe id="gameFrame"></iframe>
+<div id="weaponPreview"></div>
 
 <script>
-let ranks=["Silver I","Silver II","Silver III","Gold Nova","Master Guardian","Legendary Eagle","Global Elite"];
-let skins=["AK-47 Redline","AWP Dragon Lore","M4A1 Hyper Beast","Glock Fade","USP Kill Confirmed","Deagle Blaze"];
 
-function enterGame(){
-let n=document.getElementById("nick").value;
-if(!n)return alert("Enter nickname");
-localStorage.setItem("playerNick",n);
-document.getElementById("login").style.display="none";
-document.getElementById("menu").style.display="block";
-let rank=ranks[Math.floor(Math.random()*ranks.length)];
-document.getElementById("rankBox").innerText="Player: "+n+" | Rank: "+rank;
+let money=1000;
+let elo=1200;
+let skins=[];
+
+const rarities=[
+{name:"Common",chance:50,color:"gray"},
+{name:"Rare",chance:30,color:"deepskyblue"},
+{name:"Epic",chance:15,color:"violet"},
+{name:"Legendary",chance:5,color:"gold"}
+];
+
+function playHover(){ document.getElementById("hoverSound").play(); }
+function playClick(){ document.getElementById("clickSound").play(); }
+
+function showServers(){
+    document.getElementById("output").innerHTML=
+    "<b>Select Server:</b><br>"+
+    "<button onclick='launchGame()'>EU Competitive</button>"+
+    "<button onclick='launchGame()'>US Public</button>";
 }
 
-function play(){
-document.getElementById("menu").style.display="none";
-document.getElementById("loading").style.display="block";
-document.getElementById("loadingText").innerText="Loading player: "+localStorage.getItem("playerNick");
-let p=0;
-let load=setInterval(()=>{
-p++;bar.style.width=p+"%";percent.innerText=p+"%";
-if(p>=100){clearInterval(load);document.documentElement.requestFullscreen();
-setTimeout(()=>{
-let nick=localStorage.getItem("playerNick");
-window.location.href="https://poki.com/uz/g/blockpost?player="+encodeURIComponent(nick);
-},1000);}
-},30);
-}
-
-function toggleServers(){
-let s=document.getElementById("servers");
-s.style.display=s.style.display=="block"?"none":"block";
+function launchGame(){
+    document.getElementById("menu").style.display="none";
+    const frame=document.getElementById("gameFrame");
+    frame.style.display="block";
+    frame.src="https://play-cs.com/en/servers";
 }
 
 function openCase(){
-document.getElementById("caseBox").style.display="block";
-let roulette=document.getElementById("roulette");
-roulette.innerHTML="";
-for(let i=0;i<20;i++){
-let skin=document.createElement("div");
-skin.className="skin";
-skin.innerText=skins[Math.floor(Math.random()*skins.length)];
-roulette.appendChild(skin);
+    let rand=Math.random()*100;
+    let cumulative=0;
+    for(let r of rarities){
+        cumulative+=r.chance;
+        if(rand<=cumulative){
+            skins.push(r.name);
+            document.getElementById("output").innerHTML=
+            "You got: <span style='color:"+r.color+"'>"+r.name+" Skin</span>";
+            return;
+        }
+    }
 }
-setTimeout(()=>{
-roulette.style.transform="translateX(-1500px)";
-},100);
+
+function showMarket(){
+    let html="Money: $"+money+"<br><br>";
+
+    const weapons=[
+        {name:"AK-47 Neon",price:500},
+        {name:"M4A1 Plasma",price:700},
+        {name:"AWP Dragon",price:1200}
+    ];
+
+    weapons.forEach(w=>{
+        html+=w.name+" - $"+w.price+
+        " <button onclick='buyWeapon("+JSON.stringify(w.name)+","+w.price+")'>Buy</button><br>";
+    });
+
+    html+="<hr>Your skins:<br>";
+
+    skins.forEach((s,i)=>{
+        html+=s+" <button onclick='sellSkin("+i+")'>Sell</button><br>";
+    });
+
+    document.getElementById("output").innerHTML=html;
 }
+
+function buyWeapon(name,price){
+    if(money>=price){
+        money-=price;
+        skins.push(name);
+        showMarket();
+    }else{
+        alert("Not enough money");
+    }
+}
+
+function sellSkin(i){
+    money+=200;
+    skins.splice(i,1);
+    showMarket();
+}
+
+function showRank(){
+    let rank="Silver";
+    if(elo>2000)rank="Global Elite";
+    else if(elo>1500)rank="Master";
+    else if(elo>1300)rank="Gold Nova";
+    document.getElementById("output").innerHTML="ELO: "+elo+"<br>Rank: "+rank;
+}
+
+function dailyReward(){
+    let reward=Math.floor(Math.random()*500);
+    money+=reward;
+    document.getElementById("output").innerHTML="Daily reward: $"+reward;
+}
+
+// THREE.JS WEAPON PREVIEW (M4 STYLE MODEL)
+let scene,camera,renderer,weaponGroup,smokeParticles=[];
+
+function openWeaponPreview(){
+    document.getElementById("menu").style.display="none";
+    const container=document.getElementById("weaponPreview");
+    container.innerHTML="";
+    container.style.display="block";
+
+    scene=new THREE.Scene();
+    camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);
+    renderer=new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    container.appendChild(renderer.domElement);
+
+    const light=new THREE.PointLight(0xffffff,1);
+    light.position.set(5,5,5);
+    scene.add(light);
+
+    const ambient=new THREE.AmbientLight(0x404040);
+    scene.add(ambient);
+
+    weaponGroup=new THREE.Group();
+
+    // Barrel
+    const barrelGeo=new THREE.CylinderGeometry(0.08,0.08,4,32);
+    const barrelMat=new THREE.MeshStandardMaterial({color:0x222222,metalness:0.9,roughness:0.2});
+    const barrel=new THREE.Mesh(barrelGeo,barrelMat);
+    barrel.rotation.z=Math.PI/2;
+    barrel.position.x=1.5;
+    weaponGroup.add(barrel);
+
+    // Body
+    const bodyGeo=new THREE.BoxGeometry(3,0.5,0.6);
+    const bodyMat=new THREE.MeshStandardMaterial({
+        color:0x00ffcc,
+        metalness:0.9,
+        roughness:0.2,
+        emissive:0x00ffcc,
+        emissiveIntensity:0.5
+    });
+    const body=new THREE.Mesh(bodyGeo,bodyMat);
+    weaponGroup.add(body);
+
+    // Stock
+    const stockGeo=new THREE.BoxGeometry(1.5,0.4,0.6);
+    const stock=new THREE.Mesh(stockGeo,bodyMat);
+    stock.position.x=-2;
+    weaponGroup.add(stock);
+
+    // Grip
+    const gripGeo=new THREE.BoxGeometry(0.4,1,0.4);
+    const grip=new THREE.Mesh(gripGeo,bodyMat);
+    grip.position.set(-0.5,-0.8,0);
+    weaponGroup.add(grip);
+
+    scene.add(weaponGroup);
+
+    // create smoke particles
+    const smokeGeo=new THREE.SphereGeometry(0.1,8,8);
+    const smokeMat=new THREE.MeshBasicMaterial({color:0xaaaaaa,transparent:true,opacity:0.5});
+
+    for(let i=0;i<40;i++){
+        const smoke=new THREE.Mesh(smokeGeo,smokeMat.clone());
+        smoke.position.set(-2+Math.random(),Math.random()-0.5,Math.random()-0.5);
+        smokeParticles.push(smoke);
+        scene.add(smoke);
+    }
+
+    camera.position.z=7;
+
+    animate3D();
+
+    // mouse color change
+    window.addEventListener('click',()=>{
+        const color=new THREE.Color(Math.random(),Math.random(),Math.random());
+        weaponGroup.children.forEach(part=>{
+            part.material.color=color;
+            part.material.emissive=color;
+        });
+    });
+}
+
+function animate3D(){
+    requestAnimationFrame(animate3D);
+    if(weaponGroup){
+        weaponGroup.rotation.y+=0.01;
+
+        // glowing pulse effect
+        const time=Date.now()*0.002;
+        weaponGroup.children.forEach(part=>{
+            if(part.material){
+                part.material.emissiveIntensity=0.5+Math.sin(time)*0.3;
+
+                // color shift rainbow effect
+                const hue=(time*0.1)%1;
+                const color=new THREE.Color();
+                color.setHSL(hue,1,0.5);
+                part.material.color=color;
+                part.material.emissive=color;
+            }
+        });
+    }
+    // animate smoke
+        smokeParticles.forEach(p=>{
+            p.position.x-=0.02;
+            p.material.opacity-=0.005;
+            if(p.material.opacity<=0){
+                p.position.x=-2;
+                p.material.opacity=0.5;
+            }
+        });
+
+        renderer.render(scene,camera);
+}
+
 </script>
 
 </body>
